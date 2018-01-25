@@ -18,41 +18,80 @@ BASHON_consume() {
 
 BASHON_json="$(cat << EOF
 {
-    "title":"ma bite",
-    "desc":"sa vie, son histoire, ses amours, ses déboires"
+    "title": "ma bite",
+    "desc": "sa vie, son histoire, ses amours, ses déboires",
+    "meta": {
+        "author": "Alexandre Szymocha",
+        "year": 2018
+    }
 }
 EOF
 )"
 
 BASHON_json=$(printf %s "${BASHON_json}" | tr '\n' ' ')
-# BASHON_root=$(mktemp -d)
-# pushd "${BASHON_root}"
 
-BASHON_props() {
+BASHON_kv_next() {
+	local lexeme="$(BASHON_consume "${BASHON_json}")"
+	local pl="${lexeme:4}"
+	BASHON_json="${BASHON_json:${#pl}}"
+	case ${lexeme:0:4} in
+		COMA)
+			BASHON_kv_key
+		;;
+		RACC)
+			popd >/dev/null
+		;;
+		SPAC)
+			BASHON_kv_next
+	esac
+}
+
+BASHON_kv_colon() {
+	local lexeme="$(BASHON_consume "${BASHON_json}")"
+	local pl="${lexeme:4}"
+	BASHON_json="${BASHON_json:${#pl}}"
+	case ${lexeme:0:4} in
+		COLN)
+			BASHON_start "${1}"
+			BASHON_kv_next
+		;;
+		SPAC)
+			BASHON_kv_colon "${1}"
+	esac
+}
+
+BASHON_kv_key() {
 	local lexeme="$(BASHON_consume "${BASHON_json}")"
 	local pl="${lexeme:4}"
 	BASHON_json="${BASHON_json:${#pl}}"
 	case ${lexeme:0:4} in
 		STRG)
-			local data="${pl:1:-1}"
-			echo "${data}"
+			BASHON_kv_colon "${pl:1:-1}"
 		;;
 		SPAC)
-			BASHON_props
+			BASHON_kv_key
 	esac
 }
 
 BASHON_start() {
-	lexeme="$(BASHON_consume "${BASHON_json}")"
-	pl="${lexeme:4}"
+	local lexeme="$(BASHON_consume "${BASHON_json}")"
+	local pl="${lexeme:4}"
 	BASHON_json="${BASHON_json:${#pl}}"
 	case ${lexeme:0:4} in
 		LACC)
-			BASHON_props
+			mkdir -p "${1}" && pushd "${1}" >/dev/null
+			BASHON_kv_key
+		;;
+		STRG)
+			printf "%s" "${pl:1:-1}" > "STRG${1}"
+		;;
+		NMBR)
+			printf "%s" "${pl}" > "NMBR${1}"
 		;;
 		SPAC)
-			
+			BASHON_start "${1}"
 	esac
 }
 
-BASHON_start
+BASHON_root="parsed" #$(mktemp -u)
+BASHON_start "${BASHON_root}"
