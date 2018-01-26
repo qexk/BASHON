@@ -10,7 +10,7 @@ BASHON_consume() {
 		s/^true.*/TRUEtrue/;t
 		s/^false.*/FALSfalse/;t
 		s/^(-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?).*/NMBR\1/;t
-		s/^("([^"]|\\")*").*/STRG\1/;t
+		s/^("(\\\\|\\"|[^"])*").*/STRG\1/;t
 		s/^([[:space:]]+).*/SPAC\1/;t
 		s/^.*/!!!!/;t
 	')"
@@ -104,9 +104,10 @@ BASHON_array() {
 
 BASHON_start() {
 	local lexeme="$(BASHON_consume "${BASHON_json}")"
+	local tag="${lexeme:0:4}"
 	local pl="${lexeme:4}"
 	BASHON_json="${BASHON_json:${#pl}}"
-	case ${lexeme:0:4} in
+	case ${tag} in
 		LACC)
 			mkdir -p "DICT${1}" && pushd "DICT${1}" >/dev/null
 			BASHON_kv_key
@@ -115,11 +116,14 @@ BASHON_start() {
 			mkdir -p "TABL${1}" && pushd "TABL${1}" >/dev/null
 			BASHON_array
 		;;
-		STRG)
-			printf "%s" "${pl:1:-1}" > "STRG${1}"
+		NULL|TRUE|FALS)
+			touch "${tag}${1}"
 		;;
 		NMBR)
 			printf "%s" "${pl}" > "NMBR${1}"
+		;;
+		STRG)
+			printf "%s" "${pl:1:-1}" > "STRG${1}"
 		;;
 		SPAC)
 			BASHON_start "${1}"
