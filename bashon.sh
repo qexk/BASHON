@@ -16,19 +16,8 @@ BASHON_consume() {
 	')"
 }
 
-BASHON_json="$(cat << EOF
-{
-    "title": "ma bite",
-    "desc": "sa vie, son histoire, ses amours, ses déboires",
-    "meta": {
-        "author": "Alexandre Szymocha",
-        "year": 2018
-    }
-}
-EOF
-)"
-
-BASHON_json=$(printf %s "${BASHON_json}" | tr '\n' ' ')
+BASHON_json="$(cat test/json1.json)"
+BASHON_json="$(printf %s "${BASHON_json}" | tr '\n' ' ')"
 
 BASHON_kv_next() {
 	local lexeme="$(BASHON_consume "${BASHON_json}")"
@@ -68,8 +57,48 @@ BASHON_kv_key() {
 		STRG)
 			BASHON_kv_colon "${pl:1:-1}"
 		;;
+		RACC)
+			popd >/dev/null
+		;;
 		SPAC)
 			BASHON_kv_key
+	esac
+}
+
+BASHON_array_cont() {
+	local idx="${1:-0}"
+	local lexeme="$(BASHON_consume "${BASHON_json}")"
+	local pl="${lexeme:4}"
+	BASHON_json="${BASHON_json:${#pl}}"
+	case "${lexeme:0:4}" in
+		COMA)
+			BASHON_start "${idx}"
+			BASHON_array_cont "$(( ${idx} + 1  ))"
+		;;
+		RBRA)
+			popd >/dev/null
+		;;
+		SPAC)
+			BASHON_array_cont "${idx}"
+	esac
+}
+
+BASHON_array() {
+	local idx="${1:-0}"
+	local lexeme="$(BASHON_consume "${BASHON_json}")"
+	local pl="${lexeme:4}"
+	case ${lexeme:0:4} in
+		RBRA)
+			BASHON_json="${BASHON_json:${#pl}}"
+			popd >/dev/null
+		;;
+		SPAC)
+			BASHON_json="${BASHON_json:${#pl}}"
+			BASHON_array "${idx}"
+		;;
+		*)
+			BASHON_start "${idx}"
+			BASHON_array_cont "$(( ${idx} + 1 ))"
 	esac
 }
 
@@ -79,8 +108,12 @@ BASHON_start() {
 	BASHON_json="${BASHON_json:${#pl}}"
 	case ${lexeme:0:4} in
 		LACC)
-			mkdir -p "${1}" && pushd "${1}" >/dev/null
+			mkdir -p "DICT${1}" && pushd "DICT${1}" >/dev/null
 			BASHON_kv_key
+		;;
+		LBRA)
+			mkdir -p "TABL${1}" && pushd "TABL${1}" >/dev/null
+			BASHON_array
 		;;
 		STRG)
 			printf "%s" "${pl:1:-1}" > "STRG${1}"
