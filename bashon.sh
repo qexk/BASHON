@@ -102,6 +102,24 @@ BASHON_array() {
 	esac
 }
 
+BASHON_prep_key() {
+	printf %s "${1}" | sed 's/\\/\\\\/g;s:/:\\|:g'
+}
+
+BASHON_dir() {
+	local name="${1}$(BASHON_prep_key "${2}")"
+	rm -rf "????${name:4}"
+	mkdir "${name}"
+	echo "${name}"
+}
+
+BASHON_file() {
+	local name="${1}$(BASHON_prep_key "${2}")"
+	rm -rf "????${name:4}"
+	touch "${name}"
+	echo "${name}"
+}
+
 BASHON_start() {
 	local lexeme="$(BASHON_consume "${BASHON_json}")"
 	local tag="${lexeme:0:4}"
@@ -109,21 +127,21 @@ BASHON_start() {
 	BASHON_json="${BASHON_json:${#pl}}"
 	case ${tag} in
 		LACC)
-			mkdir -p "DICT${1}" && pushd "DICT${1}" >/dev/null
+			pushd "$(BASHON_dir DICT "${1}")" >/dev/null
 			BASHON_kv_key
 		;;
 		LBRA)
-			mkdir -p "TABL${1}" && pushd "TABL${1}" >/dev/null
+			pushd "$(BASHON_dir TABL "${1}")" >/dev/null
 			BASHON_array
 		;;
 		NULL|TRUE|FALS)
-			touch "${tag}${1}"
+			BASHON_file "${tag}" "${1}" >/dev/null
 		;;
 		NMBR)
-			printf "%s" "${pl}" > "NMBR${1}"
+			printf "%s" "${pl}" > "$(BASHON_file NMBR "${1}")"
 		;;
 		STRG)
-			printf "%s" "${pl:1:-1}" > "STRG${1}"
+			printf "%s" "${pl:1:-1}" > "$(BASHON_file STRG "${1}")"
 		;;
 		SPAC)
 			BASHON_start "${1}"
