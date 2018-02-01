@@ -152,4 +152,10 @@ BASHON_parse() {
 	BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
 	local root="${2:-$(mktemp -u)}"
 	_BASHON_start "${root}"
+	local true_root=
+	unset -v true_root
+	for file in ????"${root}"; do
+		[[ $file -nt $true_root ]] && true_root="${file}"
+	done
+	printf %s "${true_root}"
 }
