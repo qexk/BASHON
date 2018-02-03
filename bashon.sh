@@ -152,12 +152,22 @@ BASHON_parse() {
 	BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
 	local root="${2:-$(mktemp -u)}"
 	if [[ -z ${root//[^\/]} ]]; then
+		local true_root=
 		_BASHON_start "${root}"
-		printf %s "$(_BASHON_prep_key "${root}")"
+		for file in ????"${root}"; do
+			[[ $file -nt $true_root ]] && true_root="${file}"
+		done
+		printf %s "$(_BASHON_prep_key "${true_root}")"
 	else
+		local true_root=
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
+		pushd "${root_path}" >/dev/null
 		_BASHON_start "${root_node}"
-		printf %s "${root_path}/$(_BASHON_prep_key "${root_node}")"
+		for file in ????"${root_node}"; do
+			[[ $file -nt $true_root ]] && true_root="${file}"
+		done
+		popd >/dev/null
+		printf %s "${root_path}/$(_BASHON_prep_key "${true_root}")"
 	fi
 }
