@@ -107,14 +107,14 @@ _BASHON_prep_key() {
 
 _BASHON_dir() {
 	local name="${1}$(_BASHON_prep_key "${2}")"
-	rm -rf "????${name:4}"
+	rm -rf ????"${name:4}"
 	mkdir "${name}"
 	echo "${name}"
 }
 
 _BASHON_file() {
 	local name="${1}$(_BASHON_prep_key "${2}")"
-	rm -rf "????${name:4}"
+	rm -rf ????"${name:4}"
 	touch "${name}"
 	echo "${name}"
 }
