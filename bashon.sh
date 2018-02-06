@@ -1,4 +1,4 @@
-BASHON_json=
+_BASHON_json=
 
 _BASHON_consume() {
 	echo "$(printf %s "${1}" | sed -E '
@@ -19,9 +19,9 @@ _BASHON_consume() {
 }
 
 _BASHON_kv_next() {
-	local lexeme="$(_BASHON_consume "${BASHON_json}")"
+	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
-	_BASHON_json="${BASHON_json:${#pl}}"
+	_BASHON_json="${_BASHON_json:${#pl}}"
 	case ${lexeme:0:4} in
 		COMA)
 			_BASHON_kv_key
@@ -35,9 +35,9 @@ _BASHON_kv_next() {
 }
 
 _BASHON_kv_colon() {
-	local lexeme="$(_BASHON_consume "${BASHON_json}")"
+	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
-	BASHON_json="${BASHON_json:${#pl}}"
+	_BASHON_json="${_BASHON_json:${#pl}}"
 	case ${lexeme:0:4} in
 		COLN)
 			_BASHON_start "${1}"
@@ -49,9 +49,9 @@ _BASHON_kv_colon() {
 }
 
 _BASHON_kv_key() {
-	local lexeme="$(_BASHON_consume "${BASHON_json}")"
+	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
-	BASHON_json="${BASHON_json:${#pl}}"
+	_BASHON_json="${_BASHON_json:${#pl}}"
 	case ${lexeme:0:4} in
 		STRG)
 			_BASHON_kv_colon "${pl:1:-1}"
@@ -66,9 +66,9 @@ _BASHON_kv_key() {
 
 _BASHON_array_cont() {
 	local idx="${1:-0}"
-	local lexeme="$(_BASHON_consume "${BASHON_json}")"
+	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
-	BASHON_json="${BASHON_json:${#pl}}"
+	_BASHON_json="${_BASHON_json:${#pl}}"
 	case "${lexeme:0:4}" in
 		COMA)
 			_BASHON_start "${idx}"
@@ -84,15 +84,15 @@ _BASHON_array_cont() {
 
 _BASHON_array() {
 	local idx="${1:-0}"
-	local lexeme="$(_BASHON_consume "${BASHON_json}")"
+	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
 	case ${lexeme:0:4} in
 		RBRA)
-			BASHON_json="${BASHON_json:${#pl}}"
+			_BASHON_json="${_BASHON_json:${#pl}}"
 			popd >/dev/null
 		;;
 		SPAC)
-			BASHON_json="${BASHON_json:${#pl}}"
+			_BASHON_json="${_BASHON_json:${#pl}}"
 			_BASHON_array "${idx}"
 		;;
 		*)
@@ -120,10 +120,10 @@ _BASHON_file() {
 }
 
 _BASHON_start() {
-	local lexeme="$(_BASHON_consume "${BASHON_json}")"
+	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local tag="${lexeme:0:4}"
 	local pl="${lexeme:4}"
-	BASHON_json="${BASHON_json:${#pl}}"
+	_BASHON_json="${_BASHON_json:${#pl}}"
 	case ${tag} in
 		LACC)
 			pushd "$(_BASHON_dir DICT "${1}")" >/dev/null
@@ -149,7 +149,7 @@ _BASHON_start() {
 }
 
 BASHON_parse() {
-	BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
+	_BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
 	local root="${2:-$(mktemp -u)}"
 	if [[ -z ${root//[^\/]} ]]; then
 		local true_root=
