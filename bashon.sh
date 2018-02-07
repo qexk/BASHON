@@ -1,5 +1,6 @@
 _BASHON_json=
 
+#BEGIN Parsers
 _BASHON_consume() {
 	echo "$(printf %s "${1}" | sed -E '
 		s/^\{.*/LACC{/;t
@@ -147,6 +148,13 @@ _BASHON_start() {
 			_BASHON_start "${1}"
 	esac
 }
+#END Parsers
+
+#BEGIN Generators
+_BASHON_gen_start() {
+	:
+}
+#END Generators
 
 BASHON_parse() {
 	_BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
@@ -169,5 +177,21 @@ BASHON_parse() {
 		done
 		popd >/dev/null
 		printf %s "${root_path}/$(_BASHON_prep_key "${true_root}")"
+	fi
+}
+
+BASHON_generate() {
+	local root="${1}"
+	if [[ $* < 1 || ! -e $root ]]; then
+		return 1
+	fi
+	if [[ -z ${root//[^\/]} ]]; then
+		printf %s "$(_BASHON_gen_start "${root}")"
+	else
+		local root_path="${root%/*}"
+		local root_node="${root##*/}"
+		pushd "${root_path}" >/dev/null
+		printf %s "$(_BASHON_gen_start "${root_node}")"
+		popd >/dev/null
 	fi
 }
