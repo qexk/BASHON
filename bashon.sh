@@ -152,21 +152,14 @@ _BASHON_start() {
 
 #BEGIN Generators
 _BASHON_gen_start() {
-	:
+	echo $1
 }
 #END Generators
 
 BASHON_parse() {
 	_BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
 	local root="${2:-$(mktemp -u)}"
-	if [[ -z ${root//[^\/]} ]]; then
-		local true_root=
-		_BASHON_start "${root}"
-		for file in ????"${root}"; do
-			[[ $file -nt $true_root ]] && true_root="${file}"
-		done
-		printf %s "$(_BASHON_prep_key "${true_root}")"
-	else
+	if [[ $root =~ .*/.* ]]; then
 		local true_root=
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
@@ -177,6 +170,13 @@ BASHON_parse() {
 		done
 		popd >/dev/null
 		printf %s "${root_path}/$(_BASHON_prep_key "${true_root}")"
+	else
+		local true_root=
+		_BASHON_start "${root}"
+		for file in ????"${root}"; do
+			[[ $file -nt $true_root ]] && true_root="${file}"
+		done
+		printf %s "$(_BASHON_prep_key "${true_root}")"
 	fi
 }
 
@@ -185,13 +185,13 @@ BASHON_generate() {
 	if [[ $* < 1 || ! -e $root ]]; then
 		return 1
 	fi
-	if [[ -z ${root//[^\/]} ]]; then
-		printf %s "$(_BASHON_gen_start "${root}")"
-	else
+	if [[ $root =~ .*/.* ]]; then
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
 		pushd "${root_path}" >/dev/null
 		printf %s "$(_BASHON_gen_start "${root_node}")"
 		popd >/dev/null
+	else
+		printf %s "$(_BASHON_gen_start "${root}")"
 	fi
 }
