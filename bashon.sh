@@ -1,3 +1,5 @@
+shopt -s nullglob
+
 _BASHON_json=
 
 #BEGIN Parsers
@@ -163,7 +165,7 @@ BASHON_parse() {
 		local true_root=
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
-		pushd "./${root_path}" >/dev/null
+		pushd "${root_path}" >/dev/null
 		_BASHON_start "${root_node}"
 		for file in ????"${root_node}"; do
 			[[ $file -nt $true_root ]] && true_root="${file}"
@@ -186,7 +188,7 @@ BASHON_generate() {
 	if [[ $root =~ .*/.* ]]; then
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
-		pushd "./${root_path}" >/dev/null
+		pushd "${root_path}" >/dev/null
 		printf %s "$(_BASHON_gen_start "${root_node}")"
 		popd >/dev/null
 	else
