@@ -2,7 +2,7 @@ _BASHON_json=
 
 #BEGIN Parsers
 _BASHON_consume() {
-	echo "$(printf %s "${1}" | sed -E '
+	printf %s "$(printf %s "${1}" | sed -E '
 		s/^\{.*/LACC{/;t
 		s/^\}.*/RACC}/;t
 		s/^\[.*/LBRA[/;t
@@ -108,16 +108,16 @@ _BASHON_prep_key() {
 
 _BASHON_dir() {
 	local name="${1}$(_BASHON_prep_key "${2}")"
-	rm -rf ????"${name:4}"
-	mkdir "${name}"
-	echo "${name}"
+	rm -rf ./????"${name:4}"
+	mkdir "./${name}"
+	printf %s "${name}"
 }
 
 _BASHON_file() {
 	local name="${1}$(_BASHON_prep_key "${2}")"
-	rm -rf ????"${name:4}"
-	touch "${name}"
-	echo "${name}"
+	rm -rf ./????"${name:4}"
+	touch "./${name}"
+	printf %s "${name}"
 }
 
 _BASHON_start() {
@@ -127,11 +127,11 @@ _BASHON_start() {
 	_BASHON_json="${_BASHON_json:${#pl}}"
 	case ${tag} in
 		LACC)
-			pushd "$(_BASHON_dir DICT "${1}")" >/dev/null
+			pushd "./$(_BASHON_dir DICT "${1}")" >/dev/null
 			_BASHON_kv_key
 		;;
 		LBRA)
-			pushd "$(_BASHON_dir TABL "${1}")" >/dev/null
+			pushd "./$(_BASHON_dir TABL "${1}")" >/dev/null
 			_BASHON_array
 		;;
 		NULL|TRUE|FALS)
@@ -163,7 +163,7 @@ BASHON_parse() {
 		local true_root=
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
-		pushd "${root_path}" >/dev/null
+		pushd "./${root_path}" >/dev/null
 		_BASHON_start "${root_node}"
 		for file in ????"${root_node}"; do
 			[[ $file -nt $true_root ]] && true_root="${file}"
@@ -182,13 +182,11 @@ BASHON_parse() {
 
 BASHON_generate() {
 	local root="${1}"
-	if [[ $* < 1 || ! -e $root ]]; then
-		return 1
-	fi
+	[[ $* < 1 || ! -e $root ]] && return 1
 	if [[ $root =~ .*/.* ]]; then
 		local root_path="${root%/*}"
 		local root_node="${root##*/}"
-		pushd "${root_path}" >/dev/null
+		pushd "./${root_path}" >/dev/null
 		printf %s "$(_BASHON_gen_start "${root_node}")"
 		popd >/dev/null
 	else
