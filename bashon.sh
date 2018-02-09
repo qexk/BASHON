@@ -153,8 +153,26 @@ _BASHON_start() {
 #END Parsers
 
 #BEGIN Generators
+_BASHON_gen_dict() {
+	[[ ! -d $1 ]] && return
+	pushd "./${1}" >/dev/null
+	local sep=
+	for file in *; do
+		printf %s "${sep}\"${file:4}\":$(_BASHON_gen_start "${file}")"
+		sep=,
+	done
+	popd >/dev/null
+}
+
 _BASHON_gen_start() {
-	echo $1
+	case ${1:0:4} in
+		DICT)
+			printf %s "{$(_BASHON_gen_dict "${1}")}"
+		;;
+		STRG)
+			printf %s "\"$(cat ${1})\""
+		;;
+	esac
 }
 #END Generators
 
