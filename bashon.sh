@@ -164,13 +164,31 @@ _BASHON_gen_dict() {
 	popd >/dev/null
 }
 
+_BASHON_gen_tabl() {
+	[[ ! -d $1 ]] && return
+	pushd "./${1}" >/dev/null
+	# I really hesitated to throw in a sleep sort or a bubble sort here
+	local sep=
+	for file in $(printf '%s\n' * | sort -V); do
+		printf %s "${sep}$(_BASHON_gen_start "${file}")"
+		sep=,
+	done
+	popd >/dev/null
+}
+
 _BASHON_gen_start() {
 	case ${1:0:4} in
 		DICT)
 			printf %s "{$(_BASHON_gen_dict "${1}")}"
 		;;
+		TABL)
+			printf %s "[$(_BASHON_gen_tabl "${1}")]"
+		;;
 		STRG)
 			printf %s "\"$(cat ${1})\""
+		;;
+		NMBR)
+			printf %s "$(cat ${1})"
 		;;
 	esac
 }
