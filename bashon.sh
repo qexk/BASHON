@@ -74,7 +74,7 @@ _BASHON_tabl_cont() {
 	_BASHON_json="${_BASHON_json:${#pl}}"
 	case "${lexeme:0:4}" in
 		COMA)
-			_BASHON_start "${idx}"
+			_BASHON_start ".${idx}"
 			_BASHON_tabl_cont "$(( ${idx} + 1  ))"
 		;;
 		RBRA)
@@ -99,7 +99,7 @@ _BASHON_tabl() {
 			_BASHON_tabl "${idx}"
 		;;
 		*)
-			_BASHON_start "${idx}"
+			_BASHON_start ".${idx}"
 			_BASHON_tabl_cont "$(( ${idx} + 1 ))"
 	esac
 }
@@ -173,12 +173,13 @@ _BASHON_gen_tabl() {
 	while read -d $'\0' file; do
 		printf %s "${sep}$(_BASHON_gen_start "${file}")"
 		sep=,
-	done < <(printf '%s\0' * | sort -zV)
+	done < <(printf '%s\0' * | sort -zt. -k2)
 	popd >/dev/null
 }
 
 _BASHON_gen_start() {
-	case ${1:0:4} in
+	local tag=${1:0:4}
+	case ${tag} in
 		DICT)
 			printf %s "{$(_BASHON_gen_dict "${1}")}"
 		;;
@@ -191,6 +192,11 @@ _BASHON_gen_start() {
 		NMBR)
 			printf %s "$(cat ${1})"
 		;;
+		NULL|TRUE)
+			printf %s "${tag,,}"
+		;;
+		FALS)
+			printf %s false
 	esac
 }
 #END Generators
