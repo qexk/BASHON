@@ -67,7 +67,7 @@ _BASHON_kv_key() {
 	esac
 }
 
-_BASHON_array_cont() {
+_BASHON_tabl_cont() {
 	local idx="${1:-0}"
 	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
@@ -75,17 +75,17 @@ _BASHON_array_cont() {
 	case "${lexeme:0:4}" in
 		COMA)
 			_BASHON_start "${idx}"
-			_BASHON_array_cont "$(( ${idx} + 1  ))"
+			_BASHON_tabl_cont "$(( ${idx} + 1  ))"
 		;;
 		RBRA)
 			popd >/dev/null
 		;;
 		SPAC)
-			_BASHON_array_cont "${idx}"
+			_BASHON_tabl_cont "${idx}"
 	esac
 }
 
-_BASHON_array() {
+_BASHON_tabl() {
 	local idx="${1:-0}"
 	local lexeme="$(_BASHON_consume "${_BASHON_json}")"
 	local pl="${lexeme:4}"
@@ -96,11 +96,11 @@ _BASHON_array() {
 		;;
 		SPAC)
 			_BASHON_json="${_BASHON_json:${#pl}}"
-			_BASHON_array "${idx}"
+			_BASHON_tabl "${idx}"
 		;;
 		*)
 			_BASHON_start "${idx}"
-			_BASHON_array_cont "$(( ${idx} + 1 ))"
+			_BASHON_tabl_cont "$(( ${idx} + 1 ))"
 	esac
 }
 
@@ -134,7 +134,7 @@ _BASHON_start() {
 		;;
 		LBRA)
 			pushd "./$(_BASHON_dir TABL "${1}")" >/dev/null
-			_BASHON_array
+			_BASHON_tabl
 		;;
 		NULL|TRUE|FALS)
 			_BASHON_file "${tag}" "${1}" >/dev/null
@@ -169,10 +169,11 @@ _BASHON_gen_tabl() {
 	pushd "./${1}" >/dev/null
 	# I really hesitated to throw in a sleep sort or a bubble sort here
 	local sep=
-	for file in $(printf '%s\n' * | sort -V); do
+	local IFS=
+	while read -d $'\0' file; do
 		printf %s "${sep}$(_BASHON_gen_start "${file}")"
 		sep=,
-	done
+	done < <(printf '%s\0' * | sort -zV)
 	popd >/dev/null
 }
 
