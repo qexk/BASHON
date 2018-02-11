@@ -153,12 +153,17 @@ _BASHON_start() {
 #END Parsers
 
 #BEGIN Generators
+_BASHON_gen_key() {
+	printf %s "${1}" | sed 's:\\|:/:g;s/\\\\/\\/g'
+}
+
 _BASHON_gen_dict() {
 	[[ ! -d $1 ]] && return
 	pushd "./${1}" >/dev/null
 	local sep=
 	for file in *; do
-		printf %s "${sep}\"${file:4}\":$(_BASHON_gen_start "${file}")"
+		printf %s "${sep}\"$(_BASHON_gen_key "${file:4}")\":"\
+			"$(_BASHON_gen_start "${file}")"
 		sep=,
 	done
 	popd >/dev/null
