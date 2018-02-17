@@ -207,6 +207,9 @@ _BASHON_gen_start() {
 #END Generators
 
 BASHON_parse() {
+	[[ $1 == '-h' ]] && cat <<-EOH && return
+Usage: BASHON_parse <path.json> [<store-path>]
+EOH
 	_BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
 	local root="${2:-$(mktemp -u)}"
 	if [[ $root =~ .*/.* ]]; then
@@ -231,6 +234,9 @@ BASHON_parse() {
 }
 
 BASHON_generate() {
+	[[ $1 == '-h' ]] && cat <<-EOH && return
+Usage: BASHON_generate <root>
+EOH
 	local root="${1}"
 	[[ $* < 1 || ! -e $root ]] && return 1
 	if [[ $root =~ .*/.* ]]; then
