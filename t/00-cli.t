@@ -18,11 +18,9 @@ EOH
 Usage: BASHON_generate <root>
 EOH
 );
-for my $fun (keys %exported) {
-    isnt(bashon("declare -f $fun"), '', "$fun is exported");
-}
 
 for my $fun (keys %exported) {
+    isnt(bashon("declare -f $fun"), '', "$fun is exported");
     is(bashon("$fun -h"), $exported{$fun}, "$fun has correct usage");
 }
 
