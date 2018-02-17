@@ -207,10 +207,13 @@ _BASHON_gen_start() {
 #END Generators
 
 BASHON_parse() {
-	[[ $1 == '-h' ]] && cat <<-EOH && return
+	if [[ $1 == '-h' || ! -r $1 || -d $1 ]]; then
+		cat <<EOH
 Usage: BASHON_parse <path.json> [<store-path>]
 EOH
-	_BASHON_json="$(printf %s "${1}" | tr '\n' ' ')"
+		return
+	fi
+	_BASHON_json="$(cat "${1}" | tr '\n' ' ')"
 	local root="${2:-$(mktemp -u)}"
 	if [[ $root =~ .*/.* ]]; then
 		local true_root=
@@ -222,19 +225,20 @@ EOH
 			[[ $file -nt $true_root ]] && true_root="${file}"
 		done
 		popd >/dev/null
-		printf %s "${root_path}/$(_BASHON_prep_key "${true_root}")"
+		printf %s "${root_path}"\
+			"/$(_BASHON_prep_key "${true_root:-${root_node}}")"
 	else
 		local true_root=
 		_BASHON_start "${root}"
 		for file in ????"${root}"; do
 			[[ $file -nt $true_root ]] && true_root="${file}"
 		done
-		printf %s "$(_BASHON_prep_key "${true_root}")"
+		printf %s "$(_BASHON_prep_key "${true_root:-${root}}")"
 	fi
 }
 
 BASHON_generate() {
-	[[ $1 == '-h' ]] && cat <<-EOH && return
+	[[ $1 == '-h' ]] && cat <<EOH && return
 Usage: BASHON_generate <root>
 EOH
 	local root="${1}"
