@@ -1,12 +1,7 @@
 use strict;
 use warnings qw\ all \;
+use Bashon;
 use Test::More;
-use Cwd qw\ cwd \;
-
-sub bashon {
-    my $cmd = shift;
-    qx{/usr/bin/env /bin/bash --noprofile --norc -c '. bashon.sh;$cmd'}
-}
 
 is(bashon('printf %s salut'), 'salut', 'sourcing bashon.sh works');
 
